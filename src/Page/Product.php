@@ -97,6 +97,7 @@ class Product extends Page implements Buyable
     ];
 
     private static $summary_fields = [
+        'Thumbnail',
         'InternalItemID',
         'Title',
         'BasePrice.NiceOrEmpty',
@@ -503,5 +504,10 @@ class Product extends Page implements Buyable
         $formClass = AddProductForm::class;
         $this->extend('updateFormClass', $formClass);
         return $formClass;
+    }
+
+    public function getThumbnail()
+    {
+        return ($img = $this->Image()) ? $img->CMSThumbnail() : null;
     }
 }
