@@ -10,6 +10,7 @@ use SilverStripe\AssetAdmin\Forms\UploadField;
 use SilverStripe\Assets\Image;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\TabSet;
 use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataObject;
@@ -125,10 +126,13 @@ class Variation extends DataObject implements Buyable
 
     public function getCMSFields()
     {
-        $fields = FieldList::create(
+
+        $fields = FieldList::create();
+        $fields->push(TabSet::create('Root'));
+        $fields->addFieldsToTab('Root.Main', [
             TextField::create('InternalItemID', _t('SilverShop\Page\Product.Code', 'Product Code')),
             TextField::create('Price', _t('SilverShop\Page\Product.db_BasePrice', 'Price'))
-        );
+        ]);
         //add attributes dropdowns
         $attributes = $this->Product()->VariationAttributeTypes();
         if ($attributes->exists()) {
@@ -137,9 +141,10 @@ class Variation extends DataObject implements Buyable
                     if ($value = $this->AttributeValues()->find('TypeID', $attribute->ID)) {
                         $field->setValue($value->ID);
                     }
-                    $fields->push($field);
+                    $fields->addFieldToTab('Root.Main', $field);
                 } else {
-                    $fields->push(
+                    $fields->addFieldToTab(
+                        'Root.Main',
                         LiteralField::create(
                             'novalues' . $attribute->Name,
                             '<p class="message warning">' .
@@ -156,7 +161,8 @@ class Variation extends DataObject implements Buyable
                 //TODO: allow setting custom values here, rather than visiting the products section
             }
         } else {
-            $fields->push(
+            $fields->addFieldToTab(
+                'Root.Main',
                 LiteralField::create(
                     'savefirst',
                     '<p class="message warning">' .
@@ -168,7 +174,8 @@ class Variation extends DataObject implements Buyable
                 )
             );
         }
-        $fields->push(
+        $fields->addFieldToTab(
+            'Root.Main',
             UploadField::create('Image', _t('SilverShop\Page\Product.Image', 'Product Image'))
         );
 
@@ -178,7 +185,8 @@ class Variation extends DataObject implements Buyable
         ];
 
         //physical measurements
-        $fields->push(
+        $fields->addFieldToTab(
+            'Root.Main',
             TextField::create(
                 'Weight',
                 _t(
@@ -194,7 +202,8 @@ class Variation extends DataObject implements Buyable
             )
         );
 
-        $fields->push(
+        $fields->addFieldToTab(
+            'Root.Main',
             TextField::create(
                 'Height',
                 _t('SilverShop\Page\Product.HeightWithUnit', 'Height ({LengthUnit})', '', $fieldSubstitutes),
@@ -203,7 +212,8 @@ class Variation extends DataObject implements Buyable
             )
         );
 
-        $fields->push(
+        $fields->addFieldToTab(
+            'Root.Main',
             TextField::create(
                 'Width',
                 _t('SilverShop\Page\Product.WidthWithUnit', 'Width ({LengthUnit})', '', $fieldSubstitutes),
@@ -212,7 +222,8 @@ class Variation extends DataObject implements Buyable
             )
         );
 
-        $fields->push(
+        $fields->addFieldToTab(
+            'Root.Main',
             TextField::create(
                 'Depth',
                 _t('SilverShop\Page\Product.DepthWithUnit', 'Depth ({LengthUnit})', '', $fieldSubstitutes),
