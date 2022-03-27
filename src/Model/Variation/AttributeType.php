@@ -13,6 +13,7 @@ use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\HasManyList;
 use SilverStripe\ORM\ManyManyList;
+use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 
 /**
  * Producte Attribute Type
@@ -83,6 +84,7 @@ class AttributeType extends DataObject
                     $this->fieldLabel('Values'),
                     $this->Values(),
                     GridFieldConfig_RecordEditor::create()
+                        ->addComponent(GridFieldOrderableRows::create('Sort'))
                 )
             );
         } else {
@@ -172,7 +174,10 @@ class AttributeType extends DataObject
 
     public function canDelete($member = null)
     {
-        //TODO: prevent deleting if has been used
-        return true;
+        $can = parent::canDelete($member);
+        if ($this->Product()->count()) {
+            $can = false;
+        }
+        return $can;
     }
 }

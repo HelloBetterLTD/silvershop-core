@@ -48,16 +48,32 @@ class AttributeValue extends DataObject
 
     private static $plural_name = 'Values';
 
+    public function getTitle()
+    {
+        return $this->Value;
+    }
+
     public function getCMSFields()
     {
         $this->beforeUpdateCMSFields(
             function (FieldList $fields) {
-
-                $fields->removeByName('TypeID');
-                $fields->removeByName('Sort');
+                $fields->removeByName([
+                    'TypeID',
+                    'Sort',
+                    'ProductVariation'
+                ]);
             }
         );
 
         return parent::getCMSFields();
+    }
+
+    public function canDelete($member = null)
+    {
+        $can = parent::canDelete($member);
+        if ($this->ProductVariation()->count()) {
+            $can = false;
+        }
+        return $can;
     }
 }
