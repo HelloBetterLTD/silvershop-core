@@ -57,22 +57,15 @@ class ProductVariationsExtension extends DataExtension
                 GridFieldConfig_RecordEditor::create(100)
             )
         ]);
-        
+
         $variationsGridField->getConfig()->addComponent($sort = new GridFieldOrderableRows('Sort'));
 
         if ($this->owner->Variations()->exists()) {
-            $fields->addFieldToTab(
-                'Root.Pricing',
-                LabelField::create(
-                    'variationspriceinstructinos',
-                    _t(
-                        __CLASS__ . '.VariationsInfo',
-                        'Price - Because you have one or more variations, the price can be set in the "Variations" tab.'
-                    )
-                )
-            );
-            $fields->removeFieldFromTab('Root.Pricing', 'BasePrice');
-            $fields->removeFieldFromTab('Root.Main', 'InternalItemID');
+            $fields->removeByName([
+                'Pricing',
+                'InternalItemID',
+                'BasePrice'
+            ]);
         }
     }
 

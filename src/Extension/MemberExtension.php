@@ -11,6 +11,7 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataList;
 use SilverStripe\Security\Member;
+use SilverStripe\Security\Permission;
 use SilverStripe\SiteConfig\SiteConfig;
 
 /**
@@ -96,5 +97,10 @@ class MemberExtension extends DataExtension
         return Order::get()
             ->filter('MemberID', $this->owner->ID)
             ->filter('Status:not', Order::config()->hidden_status);
+    }
+
+    public function isAdmin()
+    {
+        return Permission::check('ADMIN', 'any', $this->owner);
     }
 }

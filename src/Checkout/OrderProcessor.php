@@ -322,14 +322,16 @@ class OrderProcessor
                     $item->write();
                 }
             }
+
             $modifiers = $this->order->Modifiers();
             if ($modifiers->exists()) {
                 foreach ($modifiers as $modifier) {
                     $modifier->write();
                 }
             }
-            //add member to order & customers group
-            if ($member = Security::getCurrentUser()) {
+
+            //add member to order & customers group but not admins.
+            if (($member = Security::getCurrentUser()) && !$member->isAdmin()) {
                 if (!$this->order->MemberID) {
                     $this->order->MemberID = $member->ID;
                 }
@@ -338,9 +340,15 @@ class OrderProcessor
                     $member->Groups()->add($cgroup);
                 }
             }
-            //allow decorators to do stuff when order is saved.
-            $this->order->extend('onPlaceOrder');
-            $this->order->write();
+
+             //allow decorators to do stuff when order is saved.
+             $this->order->extend('onPlaceOrder');
+             $this->order->write();
+
+             if ($this->order->EditingParentID) {
+                 $this->order->onAfterEditOrder();
+             }
+
         } catch (Exception $ex) {
             // Rollback the transaction if an error occurred
             if (DB::get_conn()->supportsTransactions()) {

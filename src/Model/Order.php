@@ -60,9 +60,13 @@ use SilverStripe\Security\Security;
  * @property int $MemberID
  * @property int $ShippingAddressID
  * @property int $BillingAddressID
+ * @property int $EditingParentID
+ * @property int $SplitParentID
  * @method   Member|MemberExtension Member()
  * @method   Address BillingAddress()
  * @method   Address ShippingAddress()
+ * @method   Order EditingParent()
+ * @method   Order SplitParent()
  * @method   OrderItem[]|HasManyList Items()
  * @method   OrderModifier[]|HasManyList Modifiers()
  * @method   OrderStatusLog[]|HasManyList OrderStatusLogs()
@@ -107,6 +111,8 @@ class Order extends DataObject
         'Member' => Member::class,
         'ShippingAddress' => Address::class,
         'BillingAddress' => Address::class,
+        'EditingParent' => Order::class,
+        'SplitParent' => Order::class,
     ];
 
     private static $has_many = [
@@ -518,7 +524,7 @@ class Order extends DataObject
     public function Link()
     {
         $link = CheckoutPage::find_link(false, 'order', $this->ID);
-        
+
         if (Security::getCurrentUser()) {
             $link = Controller::join_links(AccountPage::find_link(), 'order', $this->ID);
         }
@@ -806,6 +812,7 @@ class Order extends DataObject
      */
     protected function onBeforeWrite()
     {
+
         parent::onBeforeWrite();
         if (!$this->getField('Reference') && in_array($this->Status, self::$placed_status)) {
             $this->generateReference();
@@ -954,5 +961,15 @@ class Order extends DataObject
         }
 
         return $entities;
+    }
+
+
+    public function onAfterEditOrder()
+    {
+        $previousOrder = $this->EditingParent();
+        if ($previousOrder->exists()) {
+            $previousOrder->Status = 'AdminCancelled';
+            $previousOrder->write();
+        }
     }
 }

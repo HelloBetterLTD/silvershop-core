@@ -5,6 +5,7 @@ namespace SilverShop\Cart;
 use Exception;
 use SilverShop\Extension\OrderManipulationExtension;
 use SilverShop\Extension\ProductVariationsExtension;
+use SilverShop\Model\Address;
 use SilverShop\Model\Buyable;
 use SilverShop\Model\Order;
 use SilverShop\Model\OrderItem;
@@ -14,6 +15,7 @@ use SilverShop\ShopTools;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Omnipay\Model\Payment;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
 
@@ -99,6 +101,81 @@ class ShoppingCart
         return $this;
     }
 
+
+    /**
+     * Helper that takes and order and create a new order based on the previous and set to edit
+     *
+     * @param Order $order
+     */
+    public function loadOrderToEdit(Order $order)
+    {
+        $cart = $this->findOrMake();
+        $cart->update(array_merge([
+            'FirstName' => $order->FirstName,
+            'Surname' => $order->Surname,
+            'Email' => $order->Email,
+            'Notes' => $order->Notes,
+            'SeparateBillingAddress' => $order->SeparateBillingAddress,
+            'Locale' => $order->Locale,
+            'MemberID' => $order->MemberID,
+            'ShippingAddressID' => $order->ShippingAddressID,
+            'BillingAddressID' => $order->BillingAddressID,
+            'EditingParentID' => $order->ID,
+        ]));
+        $cart->write();
+
+        foreach ($order->Items() as $item) {
+            $newItem = $item->duplicate();
+            $newItem->OrderID = $cart->ID;
+            $newItem->write();
+        }
+
+        foreach ($order->Modifiers() as $modifier) {
+            $newModifier = $modifier->duplicate();
+            $newModifier->OrderID = $cart->ID;
+            $newModifier->write();
+        }
+
+        foreach ($order->Payments()->filter('Status', 'Captured') as $payment) {
+            $map = $payment->toMap();
+            unset($map['ID']);
+            unset($map['Identifier']);
+            $newPayment = Payment::create($map);
+            $newPayment->OrderID = $cart->ID;
+            $newPayment->Status = 'Captured';
+            $newPayment->write();
+        }
+
+        $cart->calculate();
+        return $cart;
+    }
+
+
+    /**
+     * Helper that takes and order and create a new order based on the previous and set to edit
+     *
+     * @param Order $order
+     */
+    public function createSplitOrder(Order $order)
+    {
+        $cart = Order::create();
+        $cart->update(array_merge([
+            'FirstName' => $order->FirstName,
+            'Surname' => $order->Surname,
+            'Email' => $order->Email,
+            'Notes' => $order->Notes,
+            'SeparateBillingAddress' => $order->SeparateBillingAddress,
+            'Locale' => $order->Locale,
+            'MemberID' => $order->MemberID,
+            'ShippingAddressID' => $order->ShippingAddressID,
+            'BillingAddressID' => $order->BillingAddressID,
+            'SplitParentID' => $order->ID,
+        ]));
+        $cart->write();
+        return $cart;
+    }
+
+
     /**
      * Helper that only allows orders to be started internally.
      *
@@ -110,7 +187,7 @@ class ShoppingCart
             return $this->current();
         }
         $this->order = Order::create();
-        if (Member::config()->login_joins_cart && ($member = Security::getCurrentUser())) {
+        if (Member::config()->login_joins_cart && ($member = Security::getCurrentUser()) && !$member->isAdmin()) {
             $this->order->MemberID = $member->ID;
         }
         $this->order->write();

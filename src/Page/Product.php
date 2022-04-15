@@ -98,7 +98,7 @@ class Product extends Page implements Buyable
 
     private static $summary_fields = [
         'Thumbnail',
-        'InternalItemID',
+        'InternalItemID' => ['title' => 'SKU'],
         'Title',
         'BasePrice.NiceOrEmpty',
         'IsPurchaseable.Nice',
