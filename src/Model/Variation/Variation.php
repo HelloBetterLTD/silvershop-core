@@ -244,7 +244,7 @@ class Variation extends DataObject implements Buyable
     {
         parent::onBeforeWrite();
 
-        if (isset($_POST['ProductAttributes']) && is_array($_POST['ProductAttributes'])) {
+        if (isset($_POST['action_doSave']) && isset($_POST['ProductAttributes']) && is_array($_POST['ProductAttributes'])) {
             $this->AttributeValues()->setByIDList(array_values($_POST['ProductAttributes']));
         }
 
