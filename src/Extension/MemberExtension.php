@@ -71,7 +71,9 @@ class MemberExtension extends DataExtension
      */
     public function afterMemberLoggedIn()
     {
-        if (Member::config()->login_joins_cart && $order = ShoppingCart::singleton()->current()) {
+        if (Member::config()->login_joins_cart
+            && !$this->owner->isAdmin()
+            && $order = ShoppingCart::singleton()->current()) {
             $order->MemberID = $this->owner->ID;
             $order->write();
         }

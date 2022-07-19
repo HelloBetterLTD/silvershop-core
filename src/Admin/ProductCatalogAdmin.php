@@ -46,6 +46,7 @@ class ProductCatalogAdmin extends ModelAdmin
             $grid->getConfig()
                 ->removeComponentsByType(GridFieldImportButton::class);
         }
+
         return $form;
     }
 
