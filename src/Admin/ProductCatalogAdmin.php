@@ -2,11 +2,13 @@
 
 namespace SilverShop\Admin;
 
+use SilverShop\Forms\GridField\ProductGridFieldDetailForm_ItemRequest;
 use SilverShop\Model\Variation\AttributeType;
 use SilverShop\Page\Product;
 use SilverShop\Page\ProductCategory;
 use SilverStripe\Admin\ModelAdmin;
 use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridFieldDetailForm;
 use SilverStripe\Forms\GridField\GridFieldExportButton;
 use SilverStripe\Forms\GridField\GridFieldImportButton;
 use SilverStripe\Forms\GridField\GridFieldPrintButton;
@@ -45,6 +47,11 @@ class ProductCatalogAdmin extends ModelAdmin
         if ($this->modelClass != Product::class) {
             $grid->getConfig()
                 ->removeComponentsByType(GridFieldImportButton::class);
+        } else {
+            $grid
+                ->getConfig()
+                ->getComponentByType(GridFieldDetailForm::class)
+                ->setItemRequestClass(ProductGridFieldDetailForm_ItemRequest::class);
         }
 
         return $form;
