@@ -84,18 +84,20 @@ class OrderModifier extends OrderAttribute
     {
         $order = $this->Order();
         $value = ($order->IsCart() || $forcecalculation) ? $this->value($subtotal) : $this->Amount;
-        switch ($this->Type) {
-            case 'Chargable':
-                $subtotal += $value;
-                break;
-            case 'Deductable':
-                $subtotal -= $value;
-                break;
-            case 'Ignored':
-                break;
+        if ($value) {
+            switch ($this->Type) {
+                case 'Chargable':
+                    $subtotal += $value;
+                    break;
+                case 'Deductable':
+                    $subtotal -= $value;
+                    break;
+                case 'Ignored':
+                    break;
+            }
+            $value = round($value, Order::config()->rounding_precision);
+            $this->Amount = $value;
         }
-        $value = round($value, Order::config()->rounding_precision);
-        $this->Amount = $value;
         return $subtotal;
     }
 
