@@ -98,6 +98,7 @@ class OrderModifier extends OrderAttribute
             $value = round($value, Order::config()->rounding_precision);
             $this->Amount = $value;
         }
+        $this->Amount = $value;
         return $subtotal;
     }
 
