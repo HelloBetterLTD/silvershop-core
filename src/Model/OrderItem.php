@@ -18,6 +18,8 @@ use SilverStripe\ORM\FieldType\DBCurrency;
  */
 class OrderItem extends OrderAttribute
 {
+    public bool $brandNew = false;
+
     private static $db = [
         'Quantity' => 'Int',
         'UnitPrice' => 'Currency',
@@ -49,7 +51,7 @@ class OrderItem extends OrderAttribute
         'Total' => 'Total Price',
     ];
 
-    private static $required_fields = array();
+    private static $required_fields = [];
 
     /**
      * The ORM relationship to the buyable item
@@ -131,7 +133,7 @@ class OrderItem extends OrderAttribute
      */
     protected function calculatetotal()
     {
-        $total = $this->UnitPrice() * $this->Quantity;
+        $total = (float)$this->UnitPrice() * (int)$this->Quantity;
         $this->extend('updateTotal', $total);
         $this->CalculatedTotal = $total;
         return $total;
@@ -155,7 +157,7 @@ class OrderItem extends OrderAttribute
                 $unique[$field] = $this->$field;
             }
         }
-        $this->extend('updateuniquedata',$unique);
+        $this->extend('updateuniquedata', $unique);
         return $unique;
     }
 
@@ -229,7 +231,7 @@ class OrderItem extends OrderAttribute
     /**
      * @return string
      */
-    public function removeallLink()
+    public function removeAllLink()
     {
         $buyable = $this->Buyable();
         return $buyable ? ShoppingCartController::remove_all_item_link($buyable, $this->uniquedata()) : '';
@@ -238,7 +240,7 @@ class OrderItem extends OrderAttribute
     /**
      * @return string
      */
-    public function setquantityLink()
+    public function setQuantityLink()
     {
         $buyable = $this->Buyable();
         return $buyable ? ShoppingCartController::set_quantity_item_link($buyable, $this->uniquedata()) : '';

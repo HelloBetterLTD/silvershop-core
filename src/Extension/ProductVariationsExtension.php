@@ -82,12 +82,12 @@ class ProductVariationsExtension extends DataExtension
         }
 
         $prices = $variations->map('ID', 'SellingPrice')->toArray();
-        $pricedata = array(
+        $pricedata = [
             'HasRange' => false,
             'Max' => ShopCurrency::create(),
             'Min' => ShopCurrency::create(),
             'Average' => ShopCurrency::create(),
-        );
+        ];
         $count = count($prices);
         $sum = array_sum($prices);
         $maxprice = max($prices);
@@ -203,7 +203,7 @@ class ProductVariationsExtension extends DataExtension
                 '"SilverShop_Variation_AttributeValues"."SilverShop_VariationID" = "SilverShop_Variation"."ID"'
             )->where(
                 "TypeID = $type AND \"SilverShop_Variation\".\"ProductID\" = " . $this->owner->ID
-            )->sort('"SilverShop_Variation"."Sort" ASC');
+            );
 
         if (!Product::config()->allow_zero_price) {
             $list = $list->where('"SilverShop_Variation"."Price" > 0');

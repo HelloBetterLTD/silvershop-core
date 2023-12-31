@@ -30,7 +30,10 @@ class Membership extends CheckoutComponent
 {
     protected $confirmed;
 
-    protected $passwordvalidator;
+    /**
+     * @var PasswordValidator
+     */
+    protected $passwordValidator;
 
     protected $dependson = [
         CustomerDetails::class,
@@ -39,13 +42,14 @@ class Membership extends CheckoutComponent
     public function __construct($confirmed = true, $validator = null)
     {
         $this->confirmed = $confirmed;
+
         if (!$validator) {
-            $this->passwordvalidator = Member::password_validator();
-            if (!$this->passwordvalidator) {
-                $this->passwordvalidator = PasswordValidator::create();
-                $this->passwordvalidator->minLength(5);
-                $this->passwordvalidator->characterStrength(
-                    2,
+            $this->passwordValidator = Member::password_validator();
+
+            if (!$this->passwordValidator) {
+                $this->passwordValidator = PasswordValidator::create();
+                $this->passwordValidator->setMinLength(5);
+                $this->passwordValidator->setTestNames(
                     ["lowercase", "uppercase", "digits", "punctuation"]
                 );
             }
@@ -55,27 +59,31 @@ class Membership extends CheckoutComponent
     public function getFormFields(Order $order, Form $form = null)
     {
         $fields = FieldList::create();
+
         if (Security::getCurrentUser()) {
             return $fields;
         }
-        $idfield = Member::config()->unique_identifier_field;
-        if (!$order->{$idfield} && ($form && !$form->Fields()->fieldByName($idfield))) {
-            //TODO: scaffold the correct id field type
-            $fields->push(TextField::create($idfield, $idfield));
+
+        $idField = Member::config()->unique_identifier_field;
+
+        if (!$order->{$idField} && ($form && !$form->Fields()->fieldByName($idField))) {
+            $fields->push(TextField::create($idField, $idField));
         }
+
         $fields->push($this->getPasswordField());
+
         return $fields;
     }
 
     public function getRequiredFields(Order $order)
     {
         if (Security::getCurrentUser() || !Checkout::membership_required()) {
-            return array();
+            return [];
         }
-        return array(
+        return [
             Member::config()->unique_identifier_field,
             'Password',
-        );
+        ];
     }
 
     public function getPasswordField()
@@ -108,14 +116,16 @@ class Membership extends CheckoutComponent
                         'SilverShop\Checkout\Checkout.MemberExists',
                         'A member already exists with the {Field} {Identifier}',
                         '',
-                        array('Field' => $fieldLabel, 'Identifier' => $idval)
+                        ['Field' => $fieldLabel, 'Identifier' => $idval]
                     ),
                     $idfield
                 );
             }
-            $passwordresult = $this->passwordvalidator->validate($data['Password'], $member);
-            if (!$passwordresult->isValid()) {
-                foreach ($passwordresult->getMessages() as $message) {
+
+            $passwordResult = $this->passwordValidator->validate($data['Password'], $member);
+
+            if (!$passwordResult->isValid()) {
+                foreach ($passwordResult->getMessages() as $message) {
                     $result->addError($message['message'], "Password");
                 }
             }
@@ -127,7 +137,7 @@ class Membership extends CheckoutComponent
 
     public function getData(Order $order)
     {
-        $data = array();
+        $data = [];
 
         if ($member = Security::getCurrentUser()) {
             $idf = Member::config()->unique_identifier_field;

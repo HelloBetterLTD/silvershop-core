@@ -3,6 +3,7 @@
 namespace SilverShop\Page;
 
 use Page;
+use SilverStripe\Control\Controller;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
 
@@ -18,7 +19,7 @@ class AccountPage extends Page
 
     private static $table_name = 'SilverShop_AccountPage';
 
-    public function canCreate($member = null, $context = array())
+    public function canCreate($member = null, $context = [])
     {
         return !self::get()->exists();
     }
@@ -47,7 +48,11 @@ class AccountPage extends Page
     public static function get_order_link($orderID, $urlSegment = false)
     {
         $page = self::get_if_account_page_exists();
-        return ($urlSegment ? $page->URLSegment . '/' : $page->Link()) . 'order/' . $orderID;
+
+        return Controller::join_links(
+            ($urlSegment ? $page->URLSegment . '/' : $page->Link()),
+            'order/' . $orderID
+        );
     }
 
     /**

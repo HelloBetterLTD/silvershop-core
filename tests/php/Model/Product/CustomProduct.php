@@ -3,31 +3,36 @@
 namespace SilverShop\Tests\Model\Product;
 
 use SilverShop\Model\Buyable;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\ORM\DataObject;
 
-/**
- * @package    shop
- * @subpackage tests
- */
 class CustomProduct extends DataObject implements Buyable, TestOnly
 {
-    private static $db = array(
+    private static $db = [
         'Title' => 'Varchar',
         'Price' => 'Currency',
-    );
+    ];
 
     private static $order_item = CustomProduct_OrderItem::class;
+
     private static $table_name = 'SilverShop_Test_CustomProduct';
 
-    public function createItem($quantity = 1, $filter = array())
+    public function createItem($quantity = 1, $filter = [])
     {
-        $itemclass = self::config()->order_item;
-        $item = new $itemclass();
+        $itemClass = self::config()->get('order_item');
+
+        if (!$itemClass) {
+            $itemClass = CustomProduct_OrderItem::class;
+        }
+
+        $item = Injector::inst()->create($itemClass);
         $item->CustomProductID = $this->ID;
+
         if ($filter) {
             $item->update($filter);
         }
+
         return $item;
     }
 

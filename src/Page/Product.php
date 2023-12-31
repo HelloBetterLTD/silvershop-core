@@ -13,7 +13,7 @@ use SilverShop\Model\Product\OrderItem;
 use SilverShop\Model\Variation\Variation;
 use SilverStripe\AssetAdmin\Forms\UploadField;
 use SilverStripe\Assets\Image;
-use SilverStripe\Control\Director;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
@@ -285,7 +285,7 @@ class Product extends Page implements Buyable
      */
     public function getCategoryIDs()
     {
-        $ids = array();
+        $ids = [];
         //ancestors
         foreach ($this->getAncestors() as $ancestor) {
             $ids[$ancestor->ID] = $ancestor->ID;
@@ -323,25 +323,29 @@ class Product extends Page implements Buyable
     public function canPurchase($member = null, $quantity = 1)
     {
         $global = self::config()->global_allow_purchase;
+
         if (!$global || !$this->AllowPurchase) {
             return false;
         }
-        $allowpurchase = false;
+
+        $allowPurchase = false;
         $extension = self::has_extension(ProductVariationsExtension::class);
+
         if ($extension && Variation::get()->filter('ProductID', $this->ID)->first()) {
             foreach ($this->Variations() as $variation) {
                 if ($variation->canPurchase($member, $quantity)) {
-                    $allowpurchase = true;
+                    $allowPurchase = true;
                     break;
                 }
             }
         } else {
-            $allowpurchase = ($this->sellingPrice() > 0 || self::config()->allow_zero_price);
+            $allowPurchase = ($this->sellingPrice() > 0 || self::config()->allow_zero_price);
         }
 
         // Standard mechanism for accepting permission changes from decorators
         $permissions = $this->extend('canPurchase', $member, $quantity);
-        $permissions[] = $allowpurchase;
+        $permissions[] = $allowPurchase;
+
         return min($permissions);
     }
 
@@ -372,7 +376,7 @@ class Product extends Page implements Buyable
      */
     public function Item()
     {
-        $filter = array();
+        $filter = [];
         $this->extend('updateItemFilter', $filter);
         $item = ShoppingCart::singleton()->get($this, $filter);
         if (!$item) {
@@ -388,14 +392,20 @@ class Product extends Page implements Buyable
      */
     public function createItem($quantity = 1, $filter = null)
     {
-        $orderitem = self::config()->order_item;
-        $item = new $orderitem();
+        $orderItem = self::config()->order_item;
+
+        if (!$orderItem) {
+            $orderItem = OrderItem::class;
+        }
+
+        $item = Injector::inst()->create($orderItem);
         $item->ProductID = $this->ID;
+
         if ($filter) {
-            //TODO: make this a bit safer, perhaps intersect with allowed fields
             $item->update($filter);
         }
         $item->Quantity = $quantity;
+
         return $item;
     }
 
@@ -406,9 +416,9 @@ class Product extends Page implements Buyable
     public function sellingPrice()
     {
         $price = $this->BasePrice;
-        //TODO: this is not ideal, because prices manipulations will not happen in a known order
+
         $this->extend('updateSellingPrice', $price);
-        //prevent negative values
+
         $price = $price < 0 ? 0 : $price;
 
         // NOTE: Ideally, this would be dependent on the locale but as of
@@ -468,7 +478,7 @@ class Product extends Page implements Buyable
     /**
      * Link to add this product to cart.
      *
-     * @return string link
+     * @return string|false link
      */
     public function addLink()
     {
@@ -478,7 +488,7 @@ class Product extends Page implements Buyable
     /**
      * Link to remove one of this product from cart.
      *
-     * @return string link
+     * @return string|false link
      */
     public function removeLink()
     {
@@ -488,9 +498,9 @@ class Product extends Page implements Buyable
     /**
      * Link to remove all of this product from cart.
      *
-     * @return string link
+     * @return string|false link
      */
-    public function removeallLink()
+    public function removeAllLink()
     {
         return ShoppingCartController::remove_all_item_link($this);
     }

@@ -19,6 +19,7 @@ use SilverStripe\View\Requirements;
  */
 abstract class AddressBook extends Address implements i18nEntityProvider
 {
+    private static $jquery_file = 'https://code.jquery.com/jquery-3.7.0.min.js';
     /**
      * The composite field tag to use
      *
@@ -34,9 +35,13 @@ abstract class AddressBook extends Address implements i18nEntityProvider
         $fields = parent::getFormFields($order);
 
         if ($existingaddressfields = $this->getExistingAddressFields()) {
-            Requirements::javascript('silverstripe/admin:thirdparty/jquery/jquery.js');
-            Requirements::javascript('silvershop/core:client/dist/javascript/CheckoutPage.js');
-            
+            if ($jquery = $this->config()->get('jquery_file')) {
+                Requirements::javascript($jquery);
+                Requirements::javascript('silvershop/core:client/dist/javascript/CheckoutPage.js');
+            } else {
+                Requirements::javascript('silvershop/core:client/dist/javascript/CheckoutPage.nojquery.js');
+            }
+
             // add the fields for a new address after the dropdown field
             $existingaddressfields->merge($fields);
             // group under a composite field (invisible by default) so we
@@ -67,7 +72,7 @@ abstract class AddressBook extends Address implements i18nEntityProvider
         $member = Security::getCurrentUser();
         if ($member && $member->AddressBook()->exists()) {
             $addressoptions = $member->AddressBook()->sort('Created', 'DESC')->map('ID', 'toString')->toArray();
-            $addressoptions['newaddress'] = _t('SilverShop\Model\Address.CreateNewAddress', 'Create new address');
+            $addressoptions['newaddress'] = _t('SilverShop\Model\Address.CreateNewAddress', 'Create new {AddressType} address', '', ["AddressType" => $this->addresstype]);
             $fieldtype = count($addressoptions) > 3 ? DropdownField::class : OptionsetField::class;
 
             $label = _t("SilverShop\Model\Address.Existing{$this->addresstype}Address", "Existing {$this->addresstype} Address");
@@ -128,7 +133,7 @@ abstract class AddressBook extends Address implements i18nEntityProvider
                     $errorMessage = _t(
                         'SilverShop\Forms.FIELDISREQUIRED',
                         '{name} is required',
-                        array('name' => $fieldLabel)
+                        ['name' => $fieldLabel]
                     );
 
                     $result->addError($errorMessage, $fieldName);
@@ -180,6 +185,6 @@ abstract class AddressBook extends Address implements i18nEntityProvider
             ];
         }
 
-        return array();
+        return [];
     }
 }

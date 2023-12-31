@@ -37,15 +37,20 @@ class VariationTest extends SapphireTest
     /**
      * @var Variation
      */
-    protected $redlarge;
+    protected $redLarge;
 
-    public function setUp()
+    /**
+     * @var Product
+     */
+    protected $ball;
+
+    public function setUp(): void
     {
         parent::setUp();
         ShoppingCart::singleton()->clear();
         $this->ball = $this->objFromFixture(Product::class, "ball");
         $this->mp3player = $this->objFromFixture(Product::class, "mp3player");
-        $this->redlarge = $this->objFromFixture(Variation::class, "redlarge");
+        $this->redLarge = $this->objFromFixture(Variation::class, "redLarge");
     }
 
     public function testVariationOrderItem()
@@ -58,11 +63,11 @@ class VariationTest extends SapphireTest
             ->set(Variation::class, 'title_separator', ':')
             ->set(Variation::class, 'title_glue', ', ');
 
-        $emptyitem = $this->redlarge->Item();
+        $emptyitem = $this->redLarge->Item();
         $this->assertEquals(1, $emptyitem->Quantity, "Items always have a quantity of at least 1.");
 
-        $cart->add($this->redlarge);
-        $item = $cart->get($this->redlarge);
+        $cart->add($this->redLarge);
+        $item = $cart->get($this->redLarge);
         $this->assertTrue((bool)$item, "item exists");
         $this->assertEquals(1, $item->Quantity);
         $this->assertEquals(22, $item->UnitPrice());
@@ -73,12 +78,12 @@ class VariationTest extends SapphireTest
     {
         $colorred = $this->objFromFixture(AttributeValue::class, "color_red");
         $sizelarge = $this->objFromFixture(AttributeValue::class, "size_large");
-        $attributes = array($colorred->ID, $sizelarge->ID);
+        $attributes = [$colorred->ID, $sizelarge->ID];
         $variation = $this->ball->getVariationByAttributes($attributes);
         $this->assertInstanceOf(Variation::class, $variation, "Variation exists");
         $this->assertEquals(22, $variation->sellingPrice(), "Variation price is $22 (price of ball");
 
-        $attributes = array($colorred->ID, 999);
+        $attributes = [$colorred->ID, 999];
         $variation = $this->ball->getVariationByAttributes($attributes);
         $this->assertNull($variation, "Variation does not exist");
     }
@@ -86,21 +91,21 @@ class VariationTest extends SapphireTest
     public function testGenerateVariations()
     {
         $color = $this->objFromFixture(AttributeType::class, "color");
-        $values = array('Black', 'Blue'); //Note: black doesn't exist in the yaml
+        $values = ['Black', 'Blue']; //Note: black doesn't exist in the yaml
         $this->mp3player->generateVariationsFromAttributes($color, $values);
 
         $capacity = $this->objFromFixture(AttributeType::class, "capacity");
-        $values = array("120GB", "300GB"); //Note: 300GB doesn't exist in the yaml
+        $values = ["120GB", "300GB"]; //Note: 300GB doesn't exist in the yaml
         $this->mp3player->generateVariationsFromAttributes($capacity, $values);
 
         $variations = $this->mp3player->Variations();
         $this->assertEquals($variations->Count(), 4, "four variations created");
 
         $titles = $variations->map('ID', 'Title')->toArray();
-        $this->assertContains('Color:Black, Capacity:120GB', $titles);
-        $this->assertContains('Color:Black, Capacity:300GB', $titles);
-        $this->assertContains('Color:Blue, Capacity:120GB', $titles);
-        $this->assertContains('Color:Blue, Capacity:300GB', $titles);
+        $this->assertStringContainsString('Color:Black, Capacity:120GB', $titles[5]);
+        $this->assertStringContainsString('Color:Black, Capacity:300GB', $titles[6]);
+        $this->assertStringContainsString('Color:Blue, Capacity:120GB', $titles[7]);
+        $this->assertStringContainsString('Color:Blue, Capacity:300GB', $titles[8]);
     }
 
     public function testPriceRange()
@@ -110,10 +115,5 @@ class VariationTest extends SapphireTest
         $this->assertEquals(20, $range->Min->getValue());
         $this->assertEquals(22, $range->Max->getValue());
         $this->assertEquals(21, $range->Average->getValue());
-    }
-
-    public function testVaraitionsBulkLoader()
-    {
-        $this->markTestIncomplete('try bulk loading some variations ... generate, and exact entries');
     }
 }

@@ -55,7 +55,6 @@ class VariationForm extends AddProductForm
             // if we are in just doing a validation step then check
             if ($this->getRequest()->requestVar('ValidateVariant')) {
                 $message = '';
-                $success = false;
 
                 try {
                     $success = $variation->canPurchase(null, $data['Quantity']);
@@ -131,7 +130,7 @@ class VariationForm extends AddProductForm
                     '',
                     ['attribute' => $attribute->Label]
                 ),
-                $product->possibleValuesForAttributeType($attribute)
+                $product->possibleValuesForAttributeType($attribute)->sort(['Sort' => 'ASC'])
             );
 
             if ($attributeDropdown) {
@@ -156,7 +155,7 @@ class VariationForm extends AddProductForm
             foreach ($query->execute()->column('ID') as $variationID) {
                 $query2->setSelect('SilverShop_AttributeValueID')
                     ->setFrom('SilverShop_Variation_AttributeValues')
-                    ->setWhere(array('SilverShop_VariationID' => $variationID));
+                    ->setWhere(['SilverShop_VariationID' => $variationID]);
                 $vararray[$variationID] = $query2->execute()->keyedColumn();
             }
 

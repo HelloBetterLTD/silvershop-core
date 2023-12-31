@@ -120,7 +120,7 @@ class OrderEmailNotifier
             'SilverShop\ShopEmail.ConfirmationSubject',
             'Order #{OrderNo} confirmation',
             '',
-            array('OrderNo' => $this->order->Reference)
+            ['OrderNo' => $this->order->Reference]
         );
         return $this->sendEmail(
             'SilverShop/Model/Order_ConfirmationEmail',
@@ -140,7 +140,7 @@ class OrderEmailNotifier
             'SilverShop\ShopEmail.AdminNotificationSubject',
             'Order #{OrderNo} notification',
             '',
-            array('OrderNo' => $this->order->Reference)
+            ['OrderNo' => $this->order->Reference]
         );
 
         $email = $this->buildEmail('SilverShop/Model/Order_AdminNotificationEmail', $subject)
@@ -163,7 +163,7 @@ class OrderEmailNotifier
             'SilverShop\ShopEmail.ReceiptSubject',
             'Order #{OrderNo} receipt',
             '',
-            array('OrderNo' => $this->order->Reference)
+            ['OrderNo' => $this->order->Reference]
         );
 
         return $this->sendEmail(
@@ -269,12 +269,14 @@ class OrderEmailNotifier
      */
     protected function debug(Email $email)
     {
-        $email->render();
+        $htmlTemplate = $email->getHTMLTemplate();
+        $htmlRender = $email->getData()->renderWith($htmlTemplate)->RAW();
         $template = $email->getHTMLTemplate();
-        $headers = $email->getSwiftMessage()->getHeaders()->toString();
-
+        $headers = $email->getHeaders()->toString();
         return "<h2>Email HTML template: $template</h2>\n" .
+            "<h3>Headers</h3>" .
             "<pre>$headers</pre>" .
-            $email->getBody();
+            "<h3>Body</h3>" .
+            $htmlRender;
     }
 }

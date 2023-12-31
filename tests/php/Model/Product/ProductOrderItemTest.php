@@ -17,7 +17,7 @@ class ProductOrderItemTest extends FunctionalTest
 {
     public static $fixture_file = __DIR__ . '/../../Fixtures/shop.yml';
     public static $disable_theme = true;
-    public static $orig = array();
+    public static $orig = [];
 
     /**
      * @var Product
@@ -40,9 +40,14 @@ class ProductOrderItemTest extends FunctionalTest
     protected $hdtv;
 
     /**
+     * @var ShoppingCart
+     */
+    protected $cart;
+
+    /**
      * Create and publish some products.
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         ShoppingCart::singleton()->clear();
@@ -64,8 +69,8 @@ class ProductOrderItemTest extends FunctionalTest
 
     public function testEmptyItem()
     {
-        $emptyitem = $this->mp3player->Item();
-        $this->assertEquals(1, $emptyitem->Quantity, "Items always have a quantity of at least 1.");
+        $emptyItem = $this->mp3player->Item();
+        $this->assertEquals(1, $emptyItem->Quantity, "Items always have a quantity of at least 1.");
     }
 
     /**
@@ -74,15 +79,17 @@ class ProductOrderItemTest extends FunctionalTest
     public function testProductVersionUpdate()
     {
         $this->cart->add($this->socks);
-        $currentorder = $this->cart->current();
-        $itembefore = $this->cart->get($this->socks);
-        $this->assertEquals($itembefore->UnitPrice(), 8, "unit price matches product price");
-        //update product details, whilst items still incart
+
+        $itemBefore = $this->cart->get($this->socks);
+        $this->assertEquals($itemBefore->UnitPrice(), 8, "unit price matches product price");
+
+        // update product details, whilst items still incart
         $this->socks->BasePrice = 9;
         $this->socks->writeToStage('Stage');
         $this->socks->publishSingle();
-        $itemafter = $this->cart->get($this->socks);
-        $this->assertEquals($itemafter->UnitPrice(), 9, "unit price matches updated product price");
+
+        $itemAfter = $this->cart->get($this->socks);
+        $this->assertEquals($itemAfter->UnitPrice(), 9, "unit price matches updated product price");
     }
 
     /**
@@ -90,13 +97,13 @@ class ProductOrderItemTest extends FunctionalTest
      */
     public function testProductVersionDoesNotExist()
     {
-        $brokenitem = OrderItem::create()->update(
+        $brokenItem = OrderItem::create()->update(
             [
                 "ProductID" => $this->socks->ID,
                 "ProductVersion" => 99999 //non existent version
             ]
         );
-        $this->assertNull($brokenitem->Product(), "version does not exist");
+        $this->assertNull($brokenItem->Product(), "version does not exist");
     }
 
     /**
@@ -117,11 +124,11 @@ class ProductOrderItemTest extends FunctionalTest
         );
         $this->assertEquals(
             "shoppingcart/removeall/SilverShop-Page-Product/{$product->ID}",
-            $item->removeallLink()
+            $item->removeAllLink()
         );
         $this->assertEquals(
             "shoppingcart/setquantity/SilverShop-Page-Product/{$product->ID}",
-            $item->setquantityLink()
+            $item->setQuantityLink()
         );
     }
 

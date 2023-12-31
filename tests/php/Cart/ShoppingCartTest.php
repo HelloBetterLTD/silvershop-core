@@ -13,7 +13,10 @@ use SilverStripe\Dev\SapphireTest;
 
 class ShoppingCartTest extends SapphireTest
 {
-    protected static $fixture_file  = __DIR__ . '/../Fixtures/shop.yml';
+    protected static $fixture_file  = [
+        '../Fixtures/shop.yml',
+        '../Fixtures/variations.yml'
+    ];
 
     public static $disable_theme  = true;
 
@@ -29,7 +32,7 @@ class ShoppingCartTest extends SapphireTest
      */
     protected $cart;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         ShopTest::setConfiguration(); //reset config
@@ -94,7 +97,6 @@ class ShoppingCartTest extends SapphireTest
 
     public function testClear()
     {
-        //$this->assertFalse($this->cart->current(),"there is no cart initally");
         $this->assertTrue((boolean)$this->cart->add($this->product), "add one item");
         $this->assertTrue((boolean)$this->cart->add($this->product), "add another item");
         $this->assertInstanceOf(Order::class, $this->cart->current(), "there's a cart");
@@ -136,9 +138,11 @@ class ShoppingCartTest extends SapphireTest
 
     public function testProductVariations()
     {
-        $this->loadFixture(__DIR__ . '/../Fixtures/variations.yml');
-        $ball1 = $this->objFromFixture(Variation::class, 'redlarge');
-        $ball2 = $this->objFromFixture(Variation::class, 'redsmall');
+        /** @var Variation $ball1 */
+        $ball1 = $this->objFromFixture(Variation::class, 'redLarge');
+
+        /** @var Variation $ball2 */
+        $ball2 = $this->objFromFixture(Variation::class, 'redSmall');
 
         $this->assertTrue((boolean)$this->cart->add($ball1), "add one item");
 
@@ -158,11 +162,12 @@ class ShoppingCartTest extends SapphireTest
         $this->assertFalse((bool)$this->cart->get($ball1), "first item not in cart");
         $this->assertNotNull($this->cart->get($ball2), "second item is in cart");
 
+        /** @var Product $ball */
         $ball = $this->objFromFixture(Product::class, 'ball');
-        $redlarge = $this->objFromFixture(Variation::class, 'redlarge');
-        // setting price of variation to zero, so it can't be added to cart.
-        $redlarge->Price = 0;
-        $redlarge->write();
+
+        $redLarge = $this->objFromFixture(Variation::class, 'redLarge');
+        $redLarge->Price = 0;
+        $redLarge->write();
 
         $ball->BasePrice = 0;
         $ball->write();

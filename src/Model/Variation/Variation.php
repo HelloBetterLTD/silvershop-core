@@ -247,19 +247,13 @@ class Variation extends DataObject implements Buyable
         if (isset($_POST['action_doSave']) && isset($_POST['ProductAttributes']) && is_array($_POST['ProductAttributes'])) {
             $this->AttributeValues()->setByIDList(array_values($_POST['ProductAttributes']));
         }
-
-        $img = $this->Image();
-
-        if ($img && $img->exists()) {
-            $img->doPublish();
-        }
     }
 
     public function getTitle()
     {
         $values = $this->AttributeValues();
         if ($values->exists()) {
-            $labelvalues = array();
+            $labelvalues = [];
             foreach ($values as $value) {
                 if (self::config()->title_has_label) {
                     $labelvalues[] = $value->Type()->Label . self::config()->title_separator . $value->Value;
@@ -277,7 +271,7 @@ class Variation extends DataObject implements Buyable
 
     public function getCategoryIDs()
     {
-        return $this->Product() ? $this->Product()->getCategoryIDs() : array();
+        return $this->Product() ? $this->Product()->getCategoryIDs() : [];
     }
 
     public function getCategories()
@@ -313,7 +307,7 @@ class Variation extends DataObject implements Buyable
      */
     public function Item()
     {
-        $filter = array();
+        $filter = [];
         $this->extend('updateItemFilter', $filter);
         $item = ShoppingCart::singleton()->get($this, $filter);
         if (!$item) {
@@ -334,13 +328,14 @@ class Variation extends DataObject implements Buyable
      *
      * @param $action string
      *
-     * @return string
+     * @return string|false
      */
-    public function Link($action = null) {
+    public function Link($action = null)
+    {
         return ($this->ProductID) ? $this->Product()->Link($action) : false;
     }
 
-    public function createItem($quantity = 1, $filter = array())
+    public function createItem($quantity = 1, $filter = [])
     {
         $orderitem = self::config()->order_item;
         $item = new $orderitem();

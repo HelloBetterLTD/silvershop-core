@@ -69,22 +69,22 @@ class ShoppingCartController extends Controller
         'debug',
     ];
 
-    public static function add_item_link(Buyable $buyable, $parameters = array())
+    public static function add_item_link(Buyable $buyable, $parameters = [])
     {
         return self::build_url('add', $buyable, $parameters);
     }
 
-    public static function remove_item_link(Buyable $buyable, $parameters = array())
+    public static function remove_item_link(Buyable $buyable, $parameters = [])
     {
         return self::build_url('remove', $buyable, $parameters);
     }
 
-    public static function remove_all_item_link(Buyable $buyable, $parameters = array())
+    public static function remove_all_item_link(Buyable $buyable, $parameters = [])
     {
         return self::build_url('removeall', $buyable, $parameters);
     }
 
-    public static function set_quantity_item_link(Buyable $buyable, $parameters = array())
+    public static function set_quantity_item_link(Buyable $buyable, $parameters = [])
     {
         return self::build_url('setquantity', $buyable, $parameters);
     }
@@ -128,8 +128,9 @@ class ShoppingCartController extends Controller
         if (Director::is_ajax()) {
             return (string)$status;
         }
-        if (self::config()->direct_to_cart_page && ($cartlink = CartPage::find_link())) {
-            return Controller::curr()->redirect($cartlink);
+
+        if (self::config()->direct_to_cart_page && ($cart = CartPage::find_link())) {
+            return Controller::curr()->redirect($cart);
         } else {
             return Controller::curr()->redirectBack();
         }
@@ -191,7 +192,7 @@ class ShoppingCartController extends Controller
      *
      * @param HTTPRequest $request
      *
-     * @return HTTPResponse
+     * @return string|HTTPResponse
      * @throws \SilverStripe\Control\HTTPResponse_Exception
      */
     public function add($request)
@@ -200,15 +201,26 @@ class ShoppingCartController extends Controller
 
         if ($product = $this->buyableFromRequest()) {
             $quantity = (int)$request->getVar('quantity');
+
             if (!$quantity) {
                 $quantity = 1;
             }
+
             $result = $this->cart->add($product, $quantity, $request->getVars());
+
+            if ($result) {
+                $response = $this->cart->getMessage();
+            } else {
+                $response = $this->httpError(400, $this->cart->getMessage());
+            }
+        } else {
+            $response = $this->httpError(404);
         }
 
         $this->updateLocale($request);
         $this->extend('updateAddResponse', $request, $response, $product, $quantity, $result);
-        return $response ? $response : self::direct();
+
+        return $response ? $response : self::direct($result);
     }
 
     /**
@@ -216,7 +228,7 @@ class ShoppingCartController extends Controller
      *
      * @param HTTPRequest $request
      *
-     * @return HTTPResponse
+     * @return string|HTTPResponse
      * @throws \SilverStripe\Control\HTTPResponse_Exception
      */
     public function remove($request)
@@ -235,7 +247,7 @@ class ShoppingCartController extends Controller
      *
      * @param HTTPRequest $request
      *
-     * @return HTTPResponse
+     * @return string|HTTPResponse
      * @throws \SilverStripe\Control\HTTPResponse_Exception
      */
     public function removeall($request)
@@ -254,7 +266,7 @@ class ShoppingCartController extends Controller
      *
      * @param HTTPRequest $request
      *
-     * @return HTTPResponse
+     * @return string|HTTPResponse
      * @throws \SilverStripe\Control\HTTPResponse_Exception
      */
     public function setquantity($request)
@@ -275,7 +287,7 @@ class ShoppingCartController extends Controller
      *
      * @param HTTPRequest $request
      *
-     * @return HTTPResponse
+     * @return string|HTTPResponse
      */
     public function clear($request)
     {

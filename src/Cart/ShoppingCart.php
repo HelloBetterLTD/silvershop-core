@@ -224,10 +224,12 @@ class ShoppingCart
         }
 
         $item = $this->findOrMakeItem($buyable, $quantity, $filter);
+
         if (!$item) {
             return false;
         }
-        if (!$item->_brandnew) {
+
+        if (!$item->brandNew) {
             $item->Quantity += $quantity;
         } else {
             $item->Quantity = $quantity;
@@ -430,8 +432,7 @@ class ShoppingCart
             $item->write();
 
             $order->Items()->add($item);
-
-            $item->_brandnew = true; // flag as being new
+            $item->brandNew = true;
         }
 
         return $item;
@@ -441,32 +442,42 @@ class ShoppingCart
      * Finds an existing order item.
      *
      * @param Buyable $buyable
-     * @param array   $customfilter
+     * @param array   $customFilter
      *
      * @return OrderItem the item requested or null
      */
-    public function get(Buyable $buyable, $customfilter = array())
+    public function get(Buyable $buyable, $customFilter = [])
     {
         $order = $this->current();
+
         if (!$buyable || !$order) {
             return null;
         }
 
         $buyable = $this->getCorrectBuyable($buyable);
 
-        $filter = array(
+        $filter = [
             'OrderID' => $order->ID,
-        );
+        ];
 
-        $itemclass = Config::inst()->get(get_class($buyable), 'order_item');
-        $relationship = Config::inst()->get($itemclass, 'buyable_relationship');
+        $itemClass = Config::inst()->get(get_class($buyable), 'order_item');
+
+        if (!$itemClass) {
+            $itemClass = OrderItem::class;
+        }
+
+        $relationship = Config::inst()->get($itemClass, 'buyable_relationship');
         $filter[$relationship . 'ID'] = $buyable->ID;
         $required = ['OrderID', $relationship . 'ID'];
-        if (is_array($itemclass::config()->required_fields)) {
-            $required = array_merge($required, $itemclass::config()->required_fields);
+
+        if (is_array($itemClass::config()->required_fields)) {
+            $required = array_merge($required, $itemClass::config()->required_fields);
         }
-        $query = new MatchObjectFilter($itemclass, array_merge($customfilter, $filter), $required);
-        $item = $itemclass::get()->where($query->getFilter())->first();
+
+        $query = new MatchObjectFilter($itemClass, array_merge($customFilter, $filter), $required);
+
+        $item = $itemClass::get()->where($query->getFilter())->first();
+
         if (!$item) {
             return $this->error(_t(__CLASS__ . '.ItemNotFound', 'Item not found.'));
         }

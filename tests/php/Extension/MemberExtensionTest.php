@@ -8,17 +8,16 @@ use SilverShop\Model\Order;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Security\Member;
-use SilverStripe\Security\Security;
 
 /**
  * Test member functionality added via ShopMember extension
  */
 class MemberExtensionTest extends SapphireTest
 {
-    public static $fixture_file = array(
+    public static $fixture_file = [
         __DIR__ . '/../Fixtures/ShopMembers.yml',
         __DIR__ . '/../Fixtures/shop.yml',
-    );
+    ];
 
     public function testGetByIdentifier()
     {
@@ -29,6 +28,9 @@ class MemberExtensionTest extends SapphireTest
         $this->assertEquals('Jeremy', $member->FirstName);
     }
 
+    /**
+     * @doesNotPerformAssertions
+     */
     public function testCMSFields()
     {
         singleton(Member::class)->getCMSFields();
@@ -63,8 +65,7 @@ class MemberExtensionTest extends SapphireTest
         $member = $this->objFromFixture(Member::class, "jeremyperemy");
         $this->logInAs($member);
         $this->assertEquals(0, $order->MemberID);
-
-        $member->logOut();
+        $this->logOut();
 
         $this->assertTrue((bool)ShoppingCart::curr());
     }
