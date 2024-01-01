@@ -154,7 +154,7 @@ class Order extends DataObject
 
     private static $searchable_fields = [
         'Reference',
-        'Name',
+//        'Name',
         'Email',
         'Status' => [
             'filter' => 'ExactMatchFilter',
