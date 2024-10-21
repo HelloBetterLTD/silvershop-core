@@ -6,6 +6,7 @@ use Page;
 use SilverShop\Extension\ProductVariationsExtension;
 use SilverStripe\i18n\i18nEntityProvider;
 use SilverStripe\ORM\DataList;
+use SilverStripe\ORM\DataObject;
 
 /**
  * Product Category provides a way to hierartically categorise products.
@@ -17,7 +18,7 @@ use SilverStripe\ORM\DataList;
 class ProductCategory extends Page implements i18nEntityProvider
 {
     private static $belongs_many_many = [
-        'Products' => Product::class,
+        'Products' => DataObject::class,
     ];
 
     private static $singular_name = 'Category';

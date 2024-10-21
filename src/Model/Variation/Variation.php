@@ -54,7 +54,7 @@ class Variation extends DataObject implements Buyable
     ];
 
     private static $has_one = [
-        'Product' => Product::class,
+        'Product' => DataObject::class,
         'Image' => Image::class
     ];
 

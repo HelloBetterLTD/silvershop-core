@@ -37,7 +37,7 @@ class AttributeType extends DataObject
     ];
 
     private static $belongs_many_many = [
-        'Product' => Product::class,
+        'Product' => DataObject::class,
     ];
 
     private static $summary_fields = [

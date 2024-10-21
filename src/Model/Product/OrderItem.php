@@ -3,6 +3,7 @@
 namespace SilverShop\Model\Product;
 
 use SilverShop\Page\Product;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
 
 /**
@@ -19,7 +20,7 @@ class OrderItem extends \SilverShop\Model\OrderItem
     ];
 
     private static $has_one = [
-        'Product' => Product::class,
+        'Product' => DataObject::class,
     ];
 
     private static $table_name = 'SilverShop_Product_OrderItem';

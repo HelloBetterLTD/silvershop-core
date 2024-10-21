@@ -16,6 +16,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Omnipay\Model\Payment;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
 
@@ -495,7 +496,7 @@ class ShoppingCart
      */
     public function getCorrectBuyable(Buyable $buyable)
     {
-        if ($buyable instanceof Product
+        if ($buyable instanceof DataObject
             && $buyable->hasExtension(ProductVariationsExtension::class)
             && $buyable->Variations()->count() > 0
         ) {
