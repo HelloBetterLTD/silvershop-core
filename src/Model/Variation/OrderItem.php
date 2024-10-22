@@ -46,7 +46,7 @@ class OrderItem extends \SilverShop\Model\Product\OrderItem
         }
         return null;
     }
-    
+
     public function onPlacement()
     {
         parent::onPlacement();

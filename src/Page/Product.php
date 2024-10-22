@@ -321,7 +321,7 @@ class Product extends Page implements Buyable
      * @return boolean
      */
     public function canPurchase($member = null, $quantity = 1)
-    {die('aaaaaa');
+    {
         $global = self::config()->global_allow_purchase;
 
         if (!$global || !$this->AllowPurchase) {
